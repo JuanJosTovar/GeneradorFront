@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ingresar Referencia</title>
+  <link rel="stylesheet" href="./css/ingresarCanastas.css">
+  <!-- Se incluye la librería SheetJS desde CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+
+  <header class="menu">
+    <img src="./images/LOGO-PLASTICOS-FENIX.png" alt="" class="logo" onclick="navigateTo('index.html')">
+  </header>
+
+  <section class="form-part">
+    <h1 style="text-align: center;">Ingresar Referencias</h1>
+    <form id="excelForm">
+      <input style="display: none;" type="file" id="excelFile" accept=".xlsx,.xls" required>
+      <label for="excelFile" class="custom-file-label">Selecciona archivo Excel:</label>
+      <div class="file-name" id="fileNameDisplay" class="file-name">Ningún archivo seleccionado</div>
+      <button type="submit">Subir Archivo</button>
+    </form>
+  </section>
+
+  <div id="response"></div>
+
+  <script src="./js/ingresarReferencias.js"></script>
+  <script src="./js/app.js"></script>
+</body>
+</html>
