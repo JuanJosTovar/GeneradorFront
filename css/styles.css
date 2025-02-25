@@ -1,0 +1,46 @@
+/* Fondo oscuro para toda la página */
+* {
+    background-color: rgb(46, 46, 46);
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body, html {
+    height: 100%; /* Asegura que el contenido ocupe toda la pantalla */
+    display: flex;
+    justify-content: center; /* Centra horizontalmente */
+    align-items: center; /* Centra verticalmente */
+}
+
+
+.principal {
+    text-align: center; /* Centra el texto dentro de la sección */
+    color: white; /* Texto blanco para visibilidad */
+}
+
+.titulo {
+    font-size: 2em; /* Tamaño más grande para el título */
+    margin-bottom: 20px; /* Espaciado inferior */
+}
+
+ul {
+    list-style-type: none; /* Elimina las viñetas */
+    padding: 0;
+    margin: 0;
+}
+
+ul li {
+    margin: 10px 0; /* Espaciado entre los elementos */
+}
+
+a {
+    text-decoration: none; /* Elimina el subrayado de los enlaces */
+    color: white; /* Color blanco para los enlaces */
+    font-size: 1.2em; /* Aumenta ligeramente el tamaño del texto */
+}
+
+a:hover {
+    color: rgb(255, 165, 0); /* Cambia el color al pasar el mouse */
+}
+
