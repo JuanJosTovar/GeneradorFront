@@ -1,0 +1,104 @@
+* {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    box-sizing: border-box;
+    background-color: #2e2e2e;
+  }
+  
+  .menu {
+    background-color: #252525;
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
+  }
+  
+  .logo {
+    width: 16rem;
+    height: 8rem;
+    background-color: #252525;
+    cursor: pointer;
+  }
+  
+  .form-part {
+    display: flex;
+    justify-content: space-evenly;
+    flex-direction: column;
+    gap: 20px;
+    margin-top: 60px;
+    flex-wrap: wrap;
+  }
+  
+  .form-part h1{
+    color: white;
+    font-weight: bold;
+  }
+  
+  form {
+    display: flex;
+    justify-content: space-around;
+    max-width: 400px;
+    margin: 0 auto;
+    padding: 20px;
+    border-radius: 5px;
+  }
+  
+  .form-part form {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background-color: #252525;
+    border-radius: 10px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+  }
+  
+  .custom-file-label {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #8dc73f;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+    margin-bottom: 5px;
+  }
+  
+  .custom-file-label:hover {
+    background-color: #709f33;
+  }
+  
+  .file-name {
+    font-size: 16px;
+    color: #ffffff;
+    margin-top: 0.4rem;
+    margin-bottom: 0.6rem;
+    text-align: center;
+    
+  }
+  
+  button {
+    padding: 10px 15px;
+    font-size: 16px;
+    background-color: #8dc73f;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 2rem;
+  }
+  
+  button:hover {
+    background-color: #709f33;
+  }
+  
+  #response {
+    max-width: 400px;
+    margin: 20px auto;
+    padding: 10px;
+    background: #eef;
+    border: 1px solid #ccd;
+    border-radius: 5px;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+  }
