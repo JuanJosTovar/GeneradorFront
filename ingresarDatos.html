@@ -1,56 +1,31 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ingreso de Datos</title>
-    <link rel="stylesheet" href="./css/ingresarDatos.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ingresar Datos</title>
+  <link rel="stylesheet" href="/css/ingresarDatos.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
-    
-    <header class="menu">
-        <img src="./images/LOGO-PLASTICOS-FENIX.png" alt="" class="logo" onclick="navigateTo('index.html')">
-    </header>
 
-    <section class="form-part">
-        <section>
-            <form id="formulario" method="POST" action="guardar_datos.php">
-                <h2 class="tittle">Ingresar Datos</h2>
-                <div>
-                    <p for="id_canasta">Id Canasta</p>
-                    <input class="input-form" type="text" id="id_canasta" name="id_canasta" placeholder="Ejemplo: B3-M1-CA-F1-P4" required>
-                </div>
-                <div>
-                    <p for="referencia">Referencia</p>
-                    <input class="input-form" type="text" id="referencia" name="referencia" placeholder="Ejemplo: pf344" required>
-                </div>
-                <div>
-                    <p for="cantidad">Cantidad</p>
-                    <input class="input-form" type="text" id="cantidad" name="cantidad" placeholder="Ejemplo: 2000" required>
-                </div>
-                <div>
-                    <p for="color">Color (Opcional)</p>
-                    <input class="input-form" type="text" id="color" name="color" placeholder="Ejemplo: Rojo">
-                </div>
-                <button class="guardar" type="submit" name="action" value="add">Guardar</button>
-                <button class="consultar" type="button" onclick="navigateTo('consultar.html')">Consultar Contenidos</button>
-            </form>
-        </section>
+  <header class="menu">
+    <img src="./images/LOGO-PLASTICOS-FENIX.png" alt="" class="logo" onclick="navigateTo('index.html')">
+  </header>
 
-        <section>
-        <form id="formulario_excel" method="POST" action="procesar_excel.php" enctype="multipart/form-data">
-            <h2 class="tittle">Subir archivo Excel</h2>
-            <div class="file-upload">
-                <input type="file" id="archivo_excel" name="archivo_excel" accept=".xlsx, .xls" required>
-                <label for="archivo_excel" class="custom-file-button">Seleccionar Archivo</label>
-                <span id="file-name">Ningún archivo seleccionado</span>
-            </div>
-            <button type="submit" class="subir-archivo">Subir y Procesar</button>
-        </form>
-        </section>
-    </section>
+  <section class="form-part">
+    <h1 style="text-align: center;">Subir Archivo Con Datos</h1>
+    <form id="excelForm">
+      <input style="display: none;" type="file" id="excelFile" accept=".xlsx,.xls" required>
+      <label for="excelFile" class="custom-file-label">Selecciona archivo Excel:</label>
+      <div class="file-name" id="fileNameDisplay" class="file-name">Ningún archivo seleccionado</div>
+      <button type="submit">Subir Archivo</button>
+    </form>
+  </section>
 
-    
-    <script src="/js/app.js"></script>
+  <div id="response"></div>
+
+  <script src="./js/ingresarDatos.js"></script>
+  <script src="./js/app.js"></script>
 </body>
 </html>
