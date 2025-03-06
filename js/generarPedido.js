@@ -1,5 +1,3 @@
-// Variable para los datos cargados desde el backend (ahora provienen de la tabla stock)
-// Se espera que el JSON tenga la forma: [ { ubicacion, descripcion_ubicacion, referencia, descripcion_referencia, color, cantidad, ubicacion_consolidada }, ... ]
 let juguetesData = [];
 let selectedCells = new Set();
 let referenceDetails = new Map(); // Mapa para almacenar detalles agrupados por referencia y color
@@ -17,72 +15,50 @@ document.getElementById('toggleTheme').onclick = function () {
 function highlightAndFindReference() {
     const searchValue = document.getElementById('search').value.trim().toLowerCase();
     
-    // Limpiar selección anterior
-    const allCells = document.querySelectorAll('.cell4, .cell3, .cell2, .cell');
+    const allCells = document.querySelectorAll('.cell, .cell2, .cell3, .cell4');
     allCells.forEach(cell => {
         cell.classList.remove('selected', 'deselected', 'highlight');
         cell.onmouseover = null;
         cell.onmouseout = null;
     });
     selectedCells.clear();
+    
     // Verificar que juguetesData es un arreglo y tiene elementos
     if (!juguetesData || !Array.isArray(juguetesData) || juguetesData.length === 0) return;
     
-    // Separa las referencias (una por línea o separadas por saltos de línea)
+    // Separa las referencias (por salto de línea) y elimina entradas vacías
     const references = searchValue.split('\n').map(ref => ref.trim()).filter(ref => ref.length > 0);
-
-    // Objeto para almacenar las canastas encontradas según la clase (prioridad visual)
-    const foundCanastas = {
-        cell4: [],
-        cell3: [],
-        cell2: [],
-        cell: []
-    };
-
-    // Recorrer cada canasta (cada objeto proviene de la tabla stock)
-    juguetesData.forEach(canasta => {
-        // Comparamos la propiedad 'referencia' con cada término de búsqueda
-        references.forEach(ref => {
-            if (canasta.referencia.toLowerCase() === ref) {
-                // Usamos la propiedad ubicacion_consolidada para buscar el elemento HTML
-                const cell = document.getElementById(canasta.ubicacion_consolidada);
-                if (cell) {
-                    if (cell.classList.contains('cell4')) foundCanastas.cell4.push(canasta);
-                    else if (cell.classList.contains('cell3')) foundCanastas.cell3.push(canasta);
-                    else if (cell.classList.contains('cell2')) foundCanastas.cell2.push(canasta);
-                    else if (cell.classList.contains('cell')) foundCanastas.cell.push(canasta);
-                }
+    
+    // Procesa cada referencia por separado
+    references.forEach(ref => {
+        // Filtrar todas las canastas cuya referencia coincide (en minúsculas)
+        const matches = juguetesData.filter(c => c.referencia.toLowerCase() === ref);
+        console.log(matches,122121);
+        
+        // Por cada canasta encontrada, resalta su celda
+        matches.forEach(canasta => {
+            const cell = document.getElementById(canasta.ubicacion_consolidada);
+            if (cell) {
+                cell.classList.add('selected');
+                selectedCells.add(canasta.ubicacion_consolidada);
+                cell.onmouseover = function(event) {
+                    const detalles = getDetalles(canasta);
+                    showInfoBox(event, detalles);
+                };
+                cell.onmouseout = function() {
+                    hideInfoBox();
+                };
+                cell.onclick = function() {
+                    toggleSelection(cell);
+                };
             }
         });
+        
+        // Obtener las ubicaciones únicas para la referencia actual
+        const ubicaciones = [...new Set(matches.map(c => c.ubicacion_consolidada))];
+        console.log(`Para referencia: ${ref}, ubicaciones consolidadas encontradas: ${ubicaciones.join(", ")}`);
     });
-
-    // Resaltar canastas según orden de prioridad de clases
-    const priorityOrder = ['cell4', 'cell3', 'cell2', 'cell'];
-    references.forEach(ref => {
-        priorityOrder.forEach(className => {
-            // Recorremos todas las canastas en lugar de usar find()
-            foundCanastas[className].forEach(canasta => {
-                if (canasta.referencia.toLowerCase() === ref) {
-                    const cell = document.getElementById(canasta.ubicacion_consolidada);
-                    if (cell) {
-                        cell.classList.add('selected');
-                        selectedCells.add(canasta.ubicacion_consolidada);
-                        cell.onmouseover = function(event) {
-                            const detalles = getDetalles(canasta);
-                            showInfoBox(event, detalles);
-                        };
-                        cell.onmouseout = function() {
-                            hideInfoBox();
-                        };
-                        cell.onclick = function() {
-                            toggleSelection(cell);
-                        };
-                    }
-                }
-            });
-        });
-    });    
-
+    
     updateSelectedBasketList();
 }
 
