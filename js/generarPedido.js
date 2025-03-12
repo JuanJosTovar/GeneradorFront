@@ -1,6 +1,7 @@
 let juguetesData = [];
 let selectedCells = new Set();
 let referenceDetails = new Map(); // Mapa para almacenar detalles agrupados
+let currentSearchRefs = new Set(); // Almacena las referencias buscadas (en minúsculas)
 
 // Alternar tema (modo oscuro/claro)
 document.getElementById('toggleTheme').onclick = function () {
@@ -15,62 +16,64 @@ document.getElementById('toggleTheme').onclick = function () {
 // pf944,32
 // pf950,50
 function highlightAndFindReference() {
-    const searchValue = document.getElementById('search').value.trim().toLowerCase();
-    
-    // Limpiar clases y eventos de todas las celdas
-    const allCells = document.querySelectorAll('.cell, .cell2, .cell3, .cell4');
-    allCells.forEach(cell => {
-      cell.classList.remove('selected', 'deselected', 'highlight', 'insuficiente');
-      cell.onmouseover = null;
-      cell.onmouseout = null;
-    });
-    selectedCells.clear();
-    
-    if (!juguetesData || !Array.isArray(juguetesData) || juguetesData.length === 0) return;
-    
-    // Separa las líneas del input
-    const lines = searchValue.split('\n').map(line => line.trim()).filter(line => line.length > 0);
-    
-    lines.forEach(line => {
-      const parts = line.split(',');
-      const refInput = parts[0].trim(); // Aseguramos eliminar espacios adicionales
-      let cantidadRequerida = 0;
-      if (parts.length > 1) {
-        cantidadRequerida = parseInt(parts[1].trim(), 10) || 0;
-      }
-      
-      // Filtrar los registros cuya referencia coincida exactamente (después de trim y a minúsculas)
-      const regex = new RegExp(`^${refInput}$`, 'i'); // 'i' para que sea case-insensitive
-      const matches = juguetesData.filter(c => regex.test(c.referencia.trim()));
-      console.log(matches,2121212);
-      
-      
-      // Para cada registro, si la cantidad en la canasta es mayor o igual que la cantidad requerida,
-      // se ilumina la celda correspondiente (sin importar el color)
-      matches.forEach(canasta => {
-        if (canasta.cantidad >= cantidadRequerida) {
-          const cell = document.getElementById(canasta.ubicacion_consolidada);
-          if (cell) {
-            cell.classList.add('selected');
-            selectedCells.add(canasta.ubicacion_consolidada);
-            cell.onmouseover = function (event) {
-              const detalles = getDetalles(canasta);
-              showInfoBox(event, detalles);
-            };
-            cell.onmouseout = function () {
-              hideInfoBox();
-            };
-            cell.onclick = function () {
-              toggleSelection(cell);
-            };
-          }
-        }
-      });
-    });
-    
-    updateSelectedBasketList();
-  }
+  const searchValue = document.getElementById('search').value.trim().toLowerCase();
   
+  // Separa las líneas del input y extrae las referencias (la parte antes de la coma)
+  const lines = searchValue.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+  currentSearchRefs = new Set(lines.map(line => {
+    const parts = line.split(',');
+    return parts[0].trim(); // ya están en minúsculas porque searchValue se convirtió a lowerCase
+  }));
+  
+  // Limpiar clases y eventos de todas las celdas
+  const allCells = document.querySelectorAll('.cell, .cell2, .cell3, .cell4');
+  allCells.forEach(cell => {
+    cell.classList.remove('selected', 'deselected', 'highlight', 'insuficiente');
+    cell.onmouseover = null;
+    cell.onmouseout = null;
+  });
+  selectedCells.clear();
+  
+  if (!juguetesData || !Array.isArray(juguetesData) || juguetesData.length === 0) return;
+  
+  // Procesa cada línea del input
+  lines.forEach(line => {
+    const parts = line.split(',');
+    const refInput = parts[0].trim(); // Valor exacto ingresado (por ejemplo, "pf930c-1")
+    let cantidadRequerida = 0;
+    if (parts.length > 1) {
+      cantidadRequerida = parseInt(parts[1].trim(), 10) || 0;
+    }
+    
+    // Usamos una expresión regular para comparar exactamente la referencia
+    const regex = new RegExp(`^${refInput}$`, 'i');
+    const matches = juguetesData.filter(c => regex.test(c.referencia.trim()));
+    
+    console.log(`Referencia: ${refInput} - Cantidad requerida: ${cantidadRequerida}`);
+    
+    matches.forEach(canasta => {
+      if (canasta.cantidad >= cantidadRequerida) {
+        const cell = document.getElementById(canasta.ubicacion_consolidada); 
+        if (cell) {
+          cell.classList.add('selected');
+          selectedCells.add(canasta.ubicacion_consolidada);
+          cell.onmouseover = function (event) {
+            const detalles = getDetalles(canasta);
+            showInfoBox(event, detalles);
+          };
+          cell.onmouseout = function () {
+            hideInfoBox();
+          };
+          cell.onclick = function () {
+            toggleSelection(cell);
+          };
+        }
+      }
+    });
+  });
+  
+  updateSelectedBasketList();
+}
 
 // Alternar selección manual de una celda
 function toggleSelection(cell) {
@@ -113,13 +116,17 @@ function hideInfoBox() {
 }
 
 // Actualiza el div flotante con detalles agrupados (este bloque es opcional)
-function updateFloatingDiv() {
+function updateFloatingDiv() {    
   const floatingDiv = document.getElementById('floatingDiv');
   floatingDiv.innerHTML = '';
   referenceDetails.clear();
 
   selectedCells.forEach(cellId => {
-    const canasta = juguetesData.find(c => c.ubicacion_consolidada === cellId);
+    // Ahora, además de buscar por ubicacion_consolidada, se valida que la referencia esté en currentSearchRefs
+    const canasta = juguetesData.find(c => c.ubicacion_consolidada === cellId &&
+        currentSearchRefs.has(c.referencia.trim().toLowerCase())
+    );
+    
     if (canasta) {
       const key = `${canasta.referencia.toLowerCase()}-${canasta.color.toLowerCase()}`;
       if (referenceDetails.has(key)) {
@@ -130,7 +137,7 @@ function updateFloatingDiv() {
     }
   });
 
-  if (referenceDetails.size > 0) {
+  if (referenceDetails.size > 0) {    
     referenceDetails.forEach(({ cantidad, color, referencia }) => {
       const refDiv = document.createElement('div');
       refDiv.textContent = `Referencia: ${referencia}\nCantidad: ${cantidad}\nColor: ${color}`;
@@ -167,7 +174,11 @@ function updateSelectedBasketList() {
   const basketCounts = new Map();
 
   selectedCells.forEach(cellId => {
-    const canasta = juguetesData.find(c => c.ubicacion_consolidada === cellId);
+    // Filtramos por ubicación y también verificamos que la referencia del registro se encuentre en currentSearchRefs
+    const canasta = juguetesData.find(c => 
+      c.ubicacion_consolidada === cellId &&
+      currentSearchRefs.has(c.referencia.trim().toLowerCase())
+    );
     if (canasta) {
       const key = `${canasta.referencia.toLowerCase()}-${canasta.color.toLowerCase()}`;
       if (basketCounts.has(key)) {
