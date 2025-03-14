@@ -73,6 +73,8 @@ function highlightAndFindReference() {
   });
   
   updateSelectedBasketList();
+  updateFloatingDiv();
+  
 }
 
 // Alternar selección manual de una celda
@@ -116,43 +118,38 @@ function hideInfoBox() {
 }
 
 // Actualiza el div flotante con detalles agrupados (este bloque es opcional)
-function updateFloatingDiv() {    
-  const floatingDiv = document.getElementById('floatingDiv');
-  floatingDiv.innerHTML = '';
+function updateFloatingDiv() {
+  const summaryContainer = document.getElementById('floatingSummary');
+  summaryContainer.innerHTML = ''; // Borramos solo el resumen
   referenceDetails.clear();
 
+  // Recorre cada celda seleccionada y agrupa por referencia y color
   selectedCells.forEach(cellId => {
-    // Ahora, además de buscar por ubicacion_consolidada, se valida que la referencia esté en currentSearchRefs
-    const canasta = juguetesData.find(c => c.ubicacion_consolidada === cellId &&
-        currentSearchRefs.has(c.referencia.trim().toLowerCase())
+    const canastas = juguetesData.filter(c => 
+      c.ubicacion_consolidada === cellId &&
+      currentSearchRefs.has(c.referencia.trim().toLowerCase())
     );
     
-    if (canasta) {
-      const key = `${canasta.referencia.toLowerCase()}-${canasta.color.toLowerCase()}`;
+    canastas.forEach(canasta => {
+      // Normalizamos referencia y color
+      const refNorm = canasta.referencia.trim().toLowerCase();
+      const colorNorm = (canasta.color ? canasta.color.trim() : 'n/a').toLowerCase();
+      const key = `${refNorm}-${colorNorm}`;
+
       if (referenceDetails.has(key)) {
         referenceDetails.get(key).cantidad += canasta.cantidad;
       } else {
-        referenceDetails.set(key, { cantidad: canasta.cantidad, color: canasta.color || 'N/A', referencia: canasta.referencia });
+        referenceDetails.set(key, { 
+          cantidad: canasta.cantidad, 
+          color: canasta.color ? canasta.color.trim() : 'N/A', 
+          referencia: canasta.referencia.trim() 
+        });
       }
-    }
-  });
-
-  if (referenceDetails.size > 0) {    
-    referenceDetails.forEach(({ cantidad, color, referencia }) => {
-      const refDiv = document.createElement('div');
-      refDiv.textContent = `Referencia: ${referencia}\nCantidad: ${cantidad}\nColor: ${color}`;
-      refDiv.style.cursor = 'pointer';
-      refDiv.onclick = function () {
-        highlightCanastas(referencia);
-      };
-      floatingDiv.appendChild(refDiv);
     });
-    floatingDiv.style.display = 'block';
-  } else {
-    floatingDiv.textContent = 'No se encontraron referencias coincidentes.';
-    floatingDiv.style.display = 'block';
-  }
+  });
 }
+
+
 
 // Función para resaltar o quitar el resaltado de la celda cuyo id coincide con la referencia
 function highlightCanastas(reference) {
@@ -169,35 +166,56 @@ function highlightCanastas(reference) {
 // Actualiza la lista de canastas seleccionadas en el div correspondiente
 function updateSelectedBasketList() {
   const selectedBasketList = document.getElementById('selectedBasketList');
+  console.log(selectedBasketList,211221);
+  
   selectedBasketList.innerHTML = '';
 
   const basketCounts = new Map();
 
   selectedCells.forEach(cellId => {
-    // Filtramos por ubicación y también verificamos que la referencia del registro se encuentre en currentSearchRefs
-    const canasta = juguetesData.find(c => 
+    const canastas = juguetesData.filter(c => 
       c.ubicacion_consolidada === cellId &&
       currentSearchRefs.has(c.referencia.trim().toLowerCase())
     );
-    if (canasta) {
-      const key = `${canasta.referencia.toLowerCase()}-${canasta.color.toLowerCase()}`;
+    canastas.forEach(canasta => {
+      // Normalizamos referencia y color para la clave
+      const refNorm = canasta.referencia.trim().toLowerCase();
+      const colorNorm = (canasta.color ? canasta.color.trim() : 'n/a').toLowerCase();
+      const key = `${refNorm}-${colorNorm}`;
+      
       if (basketCounts.has(key)) {
         basketCounts.get(key).cantidad += canasta.cantidad;
       } else {
-        basketCounts.set(key, { referencia: canasta.referencia, color: canasta.color, cantidad: canasta.cantidad });
+        basketCounts.set(key, { 
+          referencia: canasta.referencia.trim(), 
+          color: canasta.color ? canasta.color.trim() : 'N/A', 
+          cantidad: canasta.cantidad 
+        });
       }
-    }
+    });
   });
+
   basketCounts.forEach(({ referencia, color, cantidad }) => {
     const basketItem = document.createElement('div');
     basketItem.textContent = `Referencia: ${referencia}\nColor: ${color}\nCantidad: ${cantidad}`;
+
+    const previewButton = document.createElement('button');
+    previewButton.textContent = 'Vista Previa';
+    previewButton.onclick = function (e) {
+      e.stopPropagation();
+      console.log(`Clic en Vista Previa para ${referencia} - ${color}`); // Depuración
+      previewCells(referencia, color);
+    };
+
     selectedBasketList.appendChild(basketItem);
+    selectedBasketList.appendChild(previewButton)
   });
 
   if (selectedBasketList.children.length === 0) {
     selectedBasketList.textContent = 'No hay canastas seleccionadas.';
   }
 }
+
 
 // Resalta todas las ubicaciones consolidadas que coincidan con los datos traídos desde el backend
 function highlightAllConsolidatedLocations() {
@@ -276,3 +294,32 @@ window.onload = function () {
   document.getElementById('search').addEventListener('input', highlightAndFindReference);
   document.getElementById('toggleFloatingDiv').onclick = toggleFloatingDiv;
 };
+
+
+function previewCells(reference, color) {
+  // Normalizamos la referencia y el color
+  const refNorm = reference.trim().toLowerCase();
+  const colorNorm = (color ? color.trim() : 'n/a').toLowerCase();
+
+  // Primero, quitamos la clase de vista previa de todas las celdas para resetear el estado
+  const allCells = document.querySelectorAll('.cell, .cell2, .cell3, .cell4');
+  allCells.forEach(cell => {
+    cell.classList.remove('preview-highlight');
+  });
+
+  // Recorremos las celdas seleccionadas
+  selectedCells.forEach(cellId => {
+    // Obtenemos todos los registros que correspondan a esta celda y que cumplan con la combinación
+    const matchingCanastas = juguetesData.filter(c => 
+      c.ubicacion_consolidada === cellId &&
+      c.referencia.trim().toLowerCase() === refNorm &&
+      ((c.color ? c.color.trim() : 'n/a').toLowerCase() === colorNorm)
+    );
+    if (matchingCanastas.length > 0) {
+      const cell = document.getElementById(cellId);
+      if (cell) {
+        cell.classList.add('preview-highlight');
+      }
+    }
+  });
+}
