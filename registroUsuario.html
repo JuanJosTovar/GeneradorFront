@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro Fenix</title>
+    <link rel="stylesheet" href="./css/registroUsuario.css">
+</head>
+<body>
+    <section class="image">
+        <form id="dataForm" class="form">
+            <h2>Registrar Usuario</h2>
+            <div class="spaces">
+                <div class="inputs">
+                    <label for="data">Nombres</label>
+                    <div class="sub-input">
+                        <input id="nombres" name="data" class="form-control" type="text" value="">
+                    </div>
+                </div>
+                <div class="inputs">
+                    <label for="data">Apellidos</label>
+                    <div class="sub-input">
+                        <input id="apellidos" name="data" class="form-control" type="text" value="">
+                    </div>
+                </div>
+                <div class="inputs" id="last">
+                    <label for="data">Contraseña</label>
+                    <div class="sub-input">
+                        <input id="password" name="data" class="form-control" type="text" value="">
+                    </div>
+                </div>
+            </div>
+            <input class="boton-registrar" value="Registrar" type="submit">
+        </form>
+        <div id="modalOverlay"></div>
+        <div id="modalNotification"></div>
+    </section>
+    <script src="./js/registroUsuario.js"></script>
+</body>
+</html>

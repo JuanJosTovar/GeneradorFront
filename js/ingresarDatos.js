@@ -82,7 +82,6 @@ document.getElementById('excelFile').addEventListener('change', function (e) {
           ubicacionConsolidada  
         };
         
-        console.log(payload, 121212);
         
         try {
           const res = await fetch('http://localhost:10101/guardarDatos', {
