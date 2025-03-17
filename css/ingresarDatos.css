@@ -3,8 +3,15 @@
     padding: 0;
     font-family: Arial, Helvetica, sans-serif;
     box-sizing: border-box;
-    background-color: #2e2e2e;
   }
+  body {
+    background-color: #f7f6f6;
+    color: black;
+    margin: 0%;
+    padding: 0%;
+    background: url(/images/Diseño\ sin\ título.png);
+}
+
   
   .menu {
     background-color: #252525;
@@ -14,7 +21,7 @@
   }
   
   .logo {
-    width: 16rem;
+    width: 20rem;
     height: 8rem;
     background-color: #252525;
     cursor: pointer;
@@ -48,20 +55,25 @@
     flex-direction: column;
     justify-content: space-between;
     background-color: #252525;
+    width: 90em;
+    height: 16rem;
     border-radius: 10px;
     box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+    align-items: center;
   }
   
   .custom-file-label {
     display: inline-block;
     padding: 10px 20px;
-    background-color: #8dc73f;
+    background-color: #7abb26;
     color: white;
     border-radius: 5px;
     cursor: pointer;
     font-size: 16px;
     transition: background-color 0.3s ease;
     margin-bottom: 5px;
+    width: 14rem;
+    justify-content: center;
   }
   
   .custom-file-label:hover {
@@ -71,16 +83,15 @@
   .file-name {
     font-size: 16px;
     color: #ffffff;
-    margin-top: 0.4rem;
+    margin-top: 3rem;
     margin-bottom: 0.6rem;
     text-align: center;
-    
   }
   
   button {
     padding: 10px 15px;
     font-size: 16px;
-    background-color: #8dc73f;
+    background-color: #7abb26;
     color: #fff;
     border: none;
     border-radius: 5px;

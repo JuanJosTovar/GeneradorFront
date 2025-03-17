@@ -50,6 +50,18 @@ body.dark-mode #search{
     box-shadow: 0 2px 10px #85848441;
 }
 
+body.dark-mode   .vista-prev {
+    background: none;
+    border: 0;
+    padding: 0;
+    font-size: 25px;
+    -webkit-transform: scale(0.7);
+    transform: scale(0.7);
+    float:right;
+    margin-left: 239px;
+    margin-top: -60px;
+    color: wheat;
+}
 body.dark-mode .Mapa{
     background-color: #3d3d3d;
     box-shadow: 0 2px 10px #85848441;
@@ -59,6 +71,10 @@ body.dark-mode .Mapa2{
     box-shadow: 0 2px 10px #85848441;
 }
 body.dark-mode .Mapa3{
+    background-color: #3d3d3d;
+    box-shadow: 0 2px 10px #85848441;
+}
+body.dark-mode .Mapa4{
     background-color: #3d3d3d;
     box-shadow: 0 2px 10px #85848441;
 }
@@ -215,6 +231,7 @@ body{
 #selectedBasketList div {
     margin-bottom: 10px; /* Espacio entre cada selección */
     color: #313030;
+    font-size: 16px;
 }
 #floatingDiv h3 {
     justify-content: center;
@@ -303,6 +320,28 @@ body{
     gap: 28px;
     margin-top: 2rem;
 }
+.Mapa4{
+    background-color:#d6d4d471;
+    height: 46rem;
+    width: 68rem;
+    display: flex;
+    justify-content: center;
+    margin-top: 6rem;
+    margin-left: 6.97rem;
+    border-radius: 15px;
+    box-shadow: 0 2px 10px #0000001a;
+}
+.grid4{
+    display: grid;
+    justify-content: center;
+    align-content: center;
+    justify-items: center;
+    align-items: center;
+    grid-template-columns: repeat(29, 8px);
+    grid-template-rows: repeat(19, 8px);
+    gap: 28px;
+    margin-top: 2rem;
+}
 
 .cell {
     width: 30px;
@@ -335,6 +374,26 @@ body{
     transition: background-color 0.3s;
 }
 .cell4 {
+    width: 30px;
+    height: 30px;
+    background-color: rgb(171, 228, 174);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+.cell5 {
+    width: 30px;
+    height: 30px;
+    background-color: rgb(107, 71, 131);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+.cell6 {
     width: 30px;
     height: 30px;
     background-color: rgb(171, 228, 174);
@@ -393,10 +452,20 @@ body{
 }
 
 .preview-highlight {
-    border: 2px solid orange;
+    background-color: rgb(218, 165, 20);
   }
   
- 
+  .vista-prev {
+    background: none;
+    border: 0;
+    padding: 0;
+    font-size: 25px;
+    -webkit-transform: scale(0.7);
+    transform: scale(0.7);
+    float:right;
+    margin-left: 239px;
+    margin-top: -60px;
+}
 
 @-webkit-keyframes {
 }
@@ -565,3 +634,4 @@ input, #exportButton, submit {
     /* Chrome, Safari, Opera */
     animation-fill-mode: forwards
     }
+
