@@ -200,7 +200,8 @@ function updateSelectedBasketList() {
     basketItem.textContent = `Referencia: ${referencia}\nColor: ${color}\nCantidad: ${cantidad}`;
 
     const previewButton = document.createElement('button');
-    previewButton.textContent = 'Vista Previa';
+    previewButton.classList.add('vista-prev');
+    previewButton.textContent = '👁️';
     previewButton.onclick = function (e) {
       e.stopPropagation();
       console.log(`Clic en Vista Previa para ${referencia} - ${color}`); // Depuración
