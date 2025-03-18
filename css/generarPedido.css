@@ -179,6 +179,7 @@ body{
   font-variation-settings:
     "wdth" 80;
     padding: 0%;
+    font-family: Arial, Helvetica, sans-serif;
   }  
 
 
@@ -393,7 +394,7 @@ body{
 .cell3  {
     width: 30px;
     height: 30px;
-    background-color: rgb(168, 201, 209);
+    background-color: #a8c9d1;
     display: flex;
     align-items: center;
     justify-content: center;
