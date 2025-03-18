@@ -30,7 +30,7 @@ body, html{
 }
 
 .titulo {
-    font-size: 3.8em; /* Tamaño más grande para el título */
+    font-size: 3.5em; /* Tamaño más grande para el título */
     margin-bottom: 20px; /* Espaciado inferior */
     
 }
@@ -48,7 +48,7 @@ ul li {
 a {
     text-decoration: none; /* Elimina el subrayado de los enlaces */
     color: white; /* Color blanco para los enlaces */
-    font-size: 2em; /* Aumenta ligeramente el tamaño del texto */
+    font-size: 1.8em; /* Aumenta ligeramente el tamaño del texto */
 }
 
 a:hover {

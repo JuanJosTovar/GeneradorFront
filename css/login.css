@@ -20,8 +20,9 @@ body {
 .form{
     display: flex;
     justify-content: center;
-    width: 26vw;
-    height: 55vh;
+    align-items: center;
+    width: 25vw;
+    height: 50vh;
     flex-wrap: wrap;
     background-color: #1d1c1c;
     border-radius: 13px;
@@ -32,7 +33,9 @@ body {
     color: white;
     font-weight: bold;
     margin-top: 50px;
-    font-size: 50px;
+    font-size: 3em;
+    align-items: center;
+    justify-content: center;
 }
 
 .boton-registrar{
