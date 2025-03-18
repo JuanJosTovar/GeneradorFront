@@ -1,21 +1,34 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generador Fenix</title>
-    <link rel="stylesheet" href="./css/styles.css">
+    <title>Inicio de Sesión Fenix</title>
+    <link rel="stylesheet" href="./css/login.css">
 </head>
 <body>
-    <section class="principal">
-        <h1 class="titulo">Generador Fenix</h1>
-        <div class="apartados">
-            <ul>
-                <li><a href="./generarPedido.html">Generar Pedido</a></li>
-                <li><a href="./consultar.html">Consultar</a></li>
-                <li><a href="./ingresarDatos.html">Procesar Datos Individuales</a></li>
-            </ul>
-        </div>
+    <section class="image">
+        <form id="dataForm" class="form">
+            <h2>Inicio de Sesión</h2>
+            <div class="spaces">
+                <div class="inputs">
+                    <label for="data">Nombre de Usuario</label>
+                    <div class="sub-input">
+                        <input id="nombre_de_usuario" name="data" class="form-control" type="text" value="">
+                    </div>
+                </div>
+                <div class="inputs">
+                    <label for="data">Contraseña</label>
+                    <div class="sub-input">
+                        <input id="password" name="data" class="form-control" type="text" value="">
+                    </div>
+                </div>
+            </div>
+            <input class="boton-registrar" value="Iniciar Sesión" type="submit">
+        </form>
+        <div id="modalOverlay"></div>
+        <div id="modalNotification"></div>
     </section>
+    <script src="./js/login.js"></script>
 </body>
 </html>
