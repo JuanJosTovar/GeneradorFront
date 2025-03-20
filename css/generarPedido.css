@@ -431,6 +431,7 @@ body{
     cursor: pointer;
     transition: background-color 0.3s;
 }
+
 .cell:hover {
     background-color: #e2dede;
 }
@@ -441,6 +442,12 @@ body{
     background-color: #e2dede;
 }
 .cell4:hover {
+    background-color: #e2dede;
+}
+.cell5:hover {
+    background-color: #e2dede;
+}
+.cell6:hover {
     background-color: #e2dede;
 }
 .selected {

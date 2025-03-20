@@ -1,87 +1,137 @@
-let juguetesData = [];
-let selectedCells = new Set();
-let referenceDetails = new Map(); // Mapa para almacenar detalles agrupados
-let currentSearchRefs = new Set(); // Almacena las referencias buscadas (en minúsculas)
+// VARIABLES GLOBALES
+let juguetesData = []; 
+let selectedCells = new Set();         // IDs (ubicacion_consolidada) de las celdas seleccionadas.
+let selectedQuantities = new Map();      // Para cada celda, la cantidad "utilizada".
+let referenceDetails = new Map();        // Para agrupar detalles en el resumen flotante.
+let currentSearchRefs = new Set();       // Referencias ingresadas en el input (en minúsculas).
+let lastSearchQuery = null;              // Objeto de la última consulta: { ref, required, color }.
 
-// Alternar tema (modo oscuro/claro)
+// Función de normalización para referencia y color.
+function normalizeText(str) {
+  if (!str) return '';
+  // Reemplaza múltiples espacios por uno, recorta y pasa a minúsculas.
+  return str.replace(/\s+/g, ' ').trim().toLowerCase();
+}
+
+// ALTERNAR TEMA
 document.getElementById('toggleTheme').onclick = function () {
   const body = document.body;
   body.classList.toggle('dark-mode');
   this.textContent = body.classList.contains('dark-mode') ? '𖤓' : '⏾';
 };
 
-// Función para buscar coincidencias y resaltar celdas basadas en la(s) referencia(s) ingresadas
-// El input debe tener varias líneas con el formato "referencia,cantidadRequerida"
-// Por ejemplo:
-// pf944,32
-// pf950,50
+// FUNCIÓN PRINCIPAL: Procesa el input y selecciona canastas según la consulta.
+// Formato de cada línea: "referencia, cantidad, color" (el tercer parámetro es opcional)
 function highlightAndFindReference() {
   const searchValue = document.getElementById('search').value.trim().toLowerCase();
   
-  // Separa las líneas del input y extrae las referencias (la parte antes de la coma)
-  const lines = searchValue.split('\n').map(line => line.trim()).filter(line => line.length > 0);
-  currentSearchRefs = new Set(lines.map(line => {
+  // Separa las líneas (soporta saltos de línea)
+  const lines = searchValue.split('\n')
+    .map(line => line.trim())
+    .filter(line => line.length > 0);
+  // Parsear cada línea en { ref, required, color }
+  const searchQueries = lines.map(line => {
     const parts = line.split(',');
-    return parts[0].trim(); // ya están en minúsculas porque searchValue se convirtió a lowerCase
-  }));
+    return { 
+      ref: parts[0].trim(), 
+      required: parts.length > 1 ? parseInt(parts[1].trim(), 10) : 0,
+      color: parts.length > 2 ? parts[2].trim() : null
+    };
+  });
   
-  // Limpiar clases y eventos de todas las celdas
-  const allCells = document.querySelectorAll('.cell, .cell2, .cell3, .cell4');
+  // Usamos la primera línea para este ejemplo (se puede extender a múltiples)
+  if (searchQueries.length > 0) {
+    lastSearchQuery = searchQueries[0];
+  } else {
+    lastSearchQuery = null;
+  }
+  
+  // Actualizamos el set de referencias buscadas (normalizadas)
+  currentSearchRefs = new Set(searchQueries.map(q => normalizeText(q.ref)));
+  
+  // Limpiar clases y eventos de todas las celdas (incluye .cell, .cell2, .cell3, .cell4, .cell5, .cell6)
+  const allCells = document.querySelectorAll('.cell, .cell2, .cell3, .cell4, .cell5, .cell6');
   allCells.forEach(cell => {
-    cell.classList.remove('selected', 'deselected', 'highlight', 'insuficiente');
+    cell.classList.remove('selected', 'deselected', 'highlight');
     cell.onmouseover = null;
     cell.onmouseout = null;
   });
   selectedCells.clear();
+  selectedQuantities.clear();
   
   if (!juguetesData || !Array.isArray(juguetesData) || juguetesData.length === 0) return;
   
-  // Procesa cada línea del input
-  lines.forEach(line => {
-    const parts = line.split(',');
-    const refInput = parts[0].trim(); // Valor exacto ingresado (por ejemplo, "pf930c-1")
-    let cantidadRequerida = 0;
-    if (parts.length > 1) {
-      cantidadRequerida = parseInt(parts[1].trim(), 10) || 0;
-    }
+  // Orden de prioridad: menor índice = mayor prioridad.
+  const priorityOrder = ['cell4', 'cell3', 'cell2', 'cell', 'cell5', 'cell6'];
+  
+  // Para cada consulta (aquí consideramos una sola consulta por línea)
+  searchQueries.forEach(query => {
+    let requiredQuantity = query.required;
+    // Filtrar canastas que tengan la referencia EXACTA, normalizando el valor.
+    let matchedCanastas = juguetesData.filter(canasta =>
+      normalizeText(canasta.referencia) === normalizeText(query.ref)
+    );
+
     
-    // Usamos una expresión regular para comparar exactamente la referencia
-    const regex = new RegExp(`^${refInput}$`, 'i');
-    const matches = juguetesData.filter(c => regex.test(c.referencia.trim()));
-    
-    console.log(`Referencia: ${refInput} - Cantidad requerida: ${cantidadRequerida}`);
-    
-    matches.forEach(canasta => {
-      if (canasta.cantidad >= cantidadRequerida) {
-        const cell = document.getElementById(canasta.ubicacion_consolidada); 
-        if (cell) {
-          cell.classList.add('selected');
-          selectedCells.add(canasta.ubicacion_consolidada);
-          cell.onmouseover = function (event) {
-            const detalles = getDetalles(canasta);
-            showInfoBox(event, detalles);
-          };
-          cell.onmouseout = function () {
-            hideInfoBox();
-          };
-          cell.onclick = function () {
-            toggleSelection(cell);
-          };
-        }
+    // Si se ingresó color, se filtrará más adelante en el consumo (pero no se descartan canastas que no tengan ese color)
+    // Mapear cada canasta para determinar la prioridad según la clase de su celda (usando id = ubicacion_consolidada)
+    let canastasConPrioridad = matchedCanastas.map(canasta => {
+      const cell = document.getElementById(canasta.ubicacion_consolidada);
+      let priorityIndex = Infinity;
+      if (cell) {
+        priorityOrder.forEach((cls, idx) => {
+          if (cell.classList.contains(cls) && idx < priorityIndex) {
+            priorityIndex = idx;
+          }
+        });
       }
-    });
+      return { canasta, priorityIndex };
+    }).filter(item => item.priorityIndex !== Infinity);
+    
+    // Ordenar por prioridad
+    canastasConPrioridad.sort((a, b) => a.priorityIndex - b.priorityIndex);
+    
+    // Recorrer las canastas ordenadas hasta consumir la cantidad requerida.
+    for (const item of canastasConPrioridad) {
+      if (requiredQuantity <= 0) break;
+      const canasta = item.canasta;
+      const cell = document.getElementById(canasta.ubicacion_consolidada);
+      if (cell) {
+        const available = canasta.cantidad; // Cantidad disponible
+        // Si se especificó un color, se consume solo si la canasta tiene EXACTAMENTE ese color (normalizado).
+        // De lo contrario, se consume la canasta completa.
+        let useThis = true;
+        if (query.color) {
+          useThis = normalizeText(canasta.color) === normalizeText(query.color);
+        }
+        if (!useThis) continue; // Si la canasta no cumple con el criterio de color, se omite.
+        
+        const used = available > requiredQuantity ? requiredQuantity : available;
+        cell.classList.add('selected');
+        selectedCells.add(cell.id);
+        // Si ya existe un valor, lo sumamos.
+        selectedQuantities.set(cell.id, (selectedQuantities.get(cell.id) || 0) + used);
+        cell.onmouseover = function (event) {
+          const detalles = getDetalles(canasta);
+          showInfoBox(event, detalles);
+        };
+        cell.onmouseout = hideInfoBox;
+        cell.onclick = function () { toggleSelection(cell); };
+        requiredQuantity -= used;
+      }
+    }
   });
   
   updateSelectedBasketList();
-  updateFloatingDiv();
-  
+  updateFloatingDiv(Array.from(currentSearchRefs));
 }
 
-// Alternar selección manual de una celda
+// ALTERNAR SELECCIÓN MANUAL DE UNA CELDA.
 function toggleSelection(cell) {
   const cellId = cell.id;
   if (selectedCells.has(cellId)) {
     selectedCells.delete(cellId);
+    selectedQuantities.delete(cellId);
     cell.classList.remove('selected');
     cell.classList.add('deselected');
   } else {
@@ -92,7 +142,7 @@ function toggleSelection(cell) {
   updateSelectedBasketList();
 }
 
-// Función para obtener los detalles de la canasta que se mostrarán en la infoBox
+// OBTENER DETALLES PARA LA INFOBOX.
 function getDetalles(canasta) {
   return `Ubicación: ${canasta.ubicacion}
 Descripción: ${canasta.descripcion_ubicacion}
@@ -103,7 +153,7 @@ Cantidad: ${canasta.cantidad}
 Ubicación Consolidada: ${canasta.ubicacion_consolidada}`;
 }
 
-// Mostrar la caja de información en la posición del mouse
+// MUESTRA LA INFOBOX EN LA POSICIÓN DEL MOUSE.
 function showInfoBox(event, detalles) {
   const infoBox = document.getElementById('infoBox');
   infoBox.textContent = detalles;
@@ -112,48 +162,112 @@ function showInfoBox(event, detalles) {
   infoBox.style.top = event.pageY + 'px';
 }
 
-// Ocultar la caja de información
+// OCULTA LA INFOBOX.
 function hideInfoBox() {
   document.getElementById('infoBox').style.display = 'none';
 }
 
-// Actualiza el div flotante con detalles agrupados (este bloque es opcional)
-function updateFloatingDiv() {
+// ACTUALIZA EL RESUMEN FLOTANTE (div "floatingSummary").
+// Agrupa las cantidades "utilizadas" de las celdas seleccionadas para las referencias buscadas.
+function updateFloatingDiv(references) {
   const summaryContainer = document.getElementById('floatingSummary');
-  summaryContainer.innerHTML = ''; // Borramos solo el resumen
+  summaryContainer.innerHTML = ''; // Limpiar solo este contenedor.
   referenceDetails.clear();
-
-  // Recorre cada celda seleccionada y agrupa por referencia y color
-  selectedCells.forEach(cellId => {
-    const canastas = juguetesData.filter(c => 
-      c.ubicacion_consolidada === cellId &&
-      currentSearchRefs.has(c.referencia.trim().toLowerCase())
-    );
+  selectedCells.forEach(cellId, reference => {
+    const canasta = juguetesData.find(c => c.ubicacion_consolidada === cellId);
+    console.log(juguetesData.find(c => c.ubicacion_consolidada == cellId),121212);
     
-    canastas.forEach(canasta => {
-      // Normalizamos referencia y color
-      const refNorm = canasta.referencia.trim().toLowerCase();
-      const colorNorm = (canasta.color ? canasta.color.trim() : 'n/a').toLowerCase();
-      const key = `${refNorm}-${colorNorm}`;
-
-      if (referenceDetails.has(key)) {
-        referenceDetails.get(key).cantidad += canasta.cantidad;
-      } else {
-        referenceDetails.set(key, { 
-          cantidad: canasta.cantidad, 
-          color: canasta.color ? canasta.color.trim() : 'N/A', 
-          referencia: canasta.referencia.trim() 
-        });
+    if (canasta) {
+      if (references.includes(normalizeText(canasta.referencia))) {
+        const used = selectedQuantities.get(cellId) || 0;
+        const key = `${normalizeText(canasta.referencia)}-${normalizeText(canasta.color)}`;
+        if (referenceDetails.has(key)) {
+          referenceDetails.get(key).cantidad += used;
+        } else {
+          referenceDetails.set(key, { 
+            cantidad: used, 
+            color: canasta.color ? canasta.color.trim() : 'N/A', 
+            referencia: canasta.referencia.trim() 
+          });
+        }
       }
-    });
+    }
   });
+  
+  // Si se ingresó un color en la búsqueda, forzamos la cantidad para ese color a ser la requerida (si es menor)
+  if (lastSearchQuery && lastSearchQuery.color) {
+    const key = `${normalizeText(lastSearchQuery.ref)}-${normalizeText(lastSearchQuery.color)}`;
+    if (referenceDetails.has(key)) {
+      let data = referenceDetails.get(key);
+      data.cantidad = Math.min(data.cantidad, lastSearchQuery.required);
+      referenceDetails.set(key, data);
+    }
+  }
+  
+  if (referenceDetails.size > 0) {
+    referenceDetails.forEach(({ cantidad, color, referencia }) => {
+      const refDiv = document.createElement('div');
+      refDiv.style.cursor = 'pointer';
+      refDiv.onclick = function() {
+        highlightCanastas(referencia);
+      };
+      summaryContainer.appendChild(refDiv);
+    });
+    summaryContainer.style.display = 'block';
+  }
 }
 
+// ACTUALIZA EL LISTADO DE CANASTAS SELECCIONADAS EN <ul id="selectedBasketList">.
+// Solo se muestran las canastas cuya referencia esté en currentSearchRefs, usando la cantidad "utilizada".
+function updateSelectedBasketList() {
+  const selectedBasketList = document.getElementById('selectedBasketList');
+  selectedBasketList.innerHTML = '';
+  
+  const basketCounts = new Map();
+  
+  selectedCells.forEach(cellId => {
+    const canasta = juguetesData.find(c => c.ubicacion_consolidada === cellId);
+    if (canasta && currentSearchRefs.has(normalizeText(canasta.referencia))) {
+      const used = selectedQuantities.get(cellId) || 0;
+      const key = `${normalizeText(canasta.referencia)}-${normalizeText(canasta.color)}`;
+      if (basketCounts.has(key)) {
+        basketCounts.get(key).cantidad += used;
+      } else {
+        basketCounts.set(key, { 
+          referencia: canasta.referencia.trim(), 
+          color: canasta.color ? canasta.color.trim() : 'N/A', 
+          cantidad: used 
+        });
+      }
+    }
+  });
+  
+  basketCounts.forEach(({ referencia, color, cantidad }) => {
+    const basketItem = document.createElement('div');
+    basketItem.textContent = `Referencia: ${referencia}\nColor: ${color}\nCantidad: ${cantidad}`;
+    
+    // Botón de vista previa.
+    const previewButton = document.createElement('button');
+    previewButton.classList.add('vista-prev');
+    previewButton.textContent = '👁️';
+    previewButton.onclick = function(e) {
+      e.stopPropagation();
+      console.log(`Clic en Vista Previa para ${referencia} - ${color}`);
+      previewCells(referencia, color);
+    };
+    
+    basketItem.appendChild(previewButton);
+    selectedBasketList.appendChild(basketItem);
+  });
+  
+  if (selectedBasketList.children.length === 0) {
+    selectedBasketList.textContent = 'No hay canastas seleccionadas.';
+  }
+}
 
-
-// Función para resaltar o quitar el resaltado de la celda cuyo id coincide con la referencia
+// RESALTA (o quita) el resaltado de las celdas que tengan la referencia dada (vista previa).
 function highlightCanastas(reference) {
-  const allCells = document.querySelectorAll('.cell, .cell2, .cell3, .cell4');
+  const allCells = document.querySelectorAll('.cell, .cell2, .cell3, .cell4, .cell5, .cell6');
   allCells.forEach(cell => {
     if (cell.id === reference) {
       cell.classList.toggle('highlight');
@@ -163,84 +277,7 @@ function highlightCanastas(reference) {
   });
 }
 
-// Actualiza la lista de canastas seleccionadas en el div correspondiente
-function updateSelectedBasketList() {
-  const selectedBasketList = document.getElementById('selectedBasketList');
-  console.log(selectedBasketList,211221);
-  
-  selectedBasketList.innerHTML = '';
-
-  const basketCounts = new Map();
-
-  selectedCells.forEach(cellId => {
-    const canastas = juguetesData.filter(c => 
-      c.ubicacion_consolidada === cellId &&
-      currentSearchRefs.has(c.referencia.trim().toLowerCase())
-    );
-    canastas.forEach(canasta => {
-      // Normalizamos referencia y color para la clave
-      const refNorm = canasta.referencia.trim().toLowerCase();
-      const colorNorm = (canasta.color ? canasta.color.trim() : 'n/a').toLowerCase();
-      const key = `${refNorm}-${colorNorm}`;
-      
-      if (basketCounts.has(key)) {
-        basketCounts.get(key).cantidad += canasta.cantidad;
-      } else {
-        basketCounts.set(key, { 
-          referencia: canasta.referencia.trim(), 
-          color: canasta.color ? canasta.color.trim() : 'N/A', 
-          cantidad: canasta.cantidad 
-        });
-      }
-    });
-  });
-
-  basketCounts.forEach(({ referencia, color, cantidad }) => {
-    const basketItem = document.createElement('div');
-    basketItem.textContent = `Referencia: ${referencia}\nColor: ${color}\nCantidad: ${cantidad}`;
-
-    const previewButton = document.createElement('button');
-    previewButton.classList.add('vista-prev');
-    previewButton.textContent = '👁️';
-    previewButton.onclick = function (e) {
-      e.stopPropagation();
-      console.log(`Clic en Vista Previa para ${referencia} - ${color}`); // Depuración
-      previewCells(referencia, color);
-    };
-
-    selectedBasketList.appendChild(basketItem);
-    selectedBasketList.appendChild(previewButton)
-  });
-
-  if (selectedBasketList.children.length === 0) {
-    selectedBasketList.textContent = 'No hay canastas seleccionadas.';
-  }
-}
-
-
-// Resalta todas las ubicaciones consolidadas que coincidan con los datos traídos desde el backend
-function highlightAllConsolidatedLocations() {
-  juguetesData.forEach(canasta => {
-    const cell = document.getElementById(canasta.ubicacion_consolidada);
-    if (cell) {
-      cell.classList.add('selected');
-      selectedCells.add(canasta.ubicacion_consolidada);
-      cell.onmouseover = function (event) {
-        const detalles = getDetalles(canasta);
-        showInfoBox(event, detalles);
-      };
-      cell.onmouseout = function () {
-        hideInfoBox();
-      };
-      cell.onclick = function () {
-        toggleSelection(cell);
-      };
-    }
-  });
-  updateSelectedBasketList();
-}
-
-// Exporta los datos seleccionados a un archivo Excel (requiere la librería XLSX)
+// EXPORTA LOS DATOS SELECCIONADOS A UN ARCHIVO EXCEL (requiere XLSX).
 function exportToExcel() {
   const selectedData = [];
   selectedCells.forEach(cellId => {
@@ -257,19 +294,44 @@ function exportToExcel() {
       });
     }
   });
-
+  
   if (selectedData.length === 0) {
     alert("No hay datos seleccionados para exportar.");
     return;
   }
-
+  
   const ws = XLSX.utils.json_to_sheet(selectedData);
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Canastas Seleccionadas");
   XLSX.writeFile(wb, "canastas_seleccionadas.xlsx");
 }
 
-// Carga los datos desde el backend (consulta la tabla stock en MySQL)
+// FUNCION PARA MOSTRAR VISTA PREVIA: Resalta las celdas que correspondan a la referencia y color indicados.
+function previewCells(reference, color) {
+  const refNorm = normalizeText(reference);
+  const colorNorm = normalizeText(color);
+  
+  const allCells = document.querySelectorAll('.cell, .cell2, .cell3, .cell4, .cell5, .cell6');
+  allCells.forEach(cell => {
+    cell.classList.remove('preview-highlight');
+  });
+  
+  selectedCells.forEach(cellId => {
+    const matchingCanastas = juguetesData.filter(c =>
+      c.ubicacion_consolidada === cellId &&
+      normalizeText(c.referencia) === refNorm &&
+      normalizeText(c.color) === colorNorm
+    );
+    if (matchingCanastas.length > 0) {
+      const cell = document.getElementById(cellId);
+      if (cell) {
+        cell.classList.add('preview-highlight');
+      }
+    }
+  });
+}
+
+// CARGA LOS DATOS DESDE EL BACKEND.
 async function loadJuguetesData() {
   try {
     const response = await fetch('http://localhost:10101/traerCanastasPedido');
@@ -288,39 +350,10 @@ function toggleFloatingDiv() {
   floatingDiv.classList.toggle('View-div');
 }
 
-// Inicialización al cargar la página
+// INICIALIZACIÓN AL CARGAR LA PÁGINA.
 window.onload = function () {
   loadJuguetesData();
   document.getElementById('exportButton').onclick = exportToExcel;
   document.getElementById('search').addEventListener('input', highlightAndFindReference);
   document.getElementById('toggleFloatingDiv').onclick = toggleFloatingDiv;
 };
-
-
-function previewCells(reference, color) {
-  // Normalizamos la referencia y el color
-  const refNorm = reference.trim().toLowerCase();
-  const colorNorm = (color ? color.trim() : 'n/a').toLowerCase();
-
-  // Primero, quitamos la clase de vista previa de todas las celdas para resetear el estado
-  const allCells = document.querySelectorAll('.cell, .cell2, .cell3, .cell4');
-  allCells.forEach(cell => {
-    cell.classList.remove('preview-highlight');
-  });
-
-  // Recorremos las celdas seleccionadas
-  selectedCells.forEach(cellId => {
-    // Obtenemos todos los registros que correspondan a esta celda y que cumplan con la combinación
-    const matchingCanastas = juguetesData.filter(c => 
-      c.ubicacion_consolidada === cellId &&
-      c.referencia.trim().toLowerCase() === refNorm &&
-      ((c.color ? c.color.trim() : 'n/a').toLowerCase() === colorNorm)
-    );
-    if (matchingCanastas.length > 0) {
-      const cell = document.getElementById(cellId);
-      if (cell) {
-        cell.classList.add('preview-highlight');
-      }
-    }
-  });
-}

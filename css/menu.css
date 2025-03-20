@@ -22,6 +22,18 @@ body, html{
     background-position: center;
     box-shadow: 2px 2px 20px 2px rgb(19, 19, 19);
   }
+  @media screen and (max-width: 1462px) {
+    .curved-image {-webkit-clip-path: path('M0,0 C100,150 300,150 400,0 Z');
+    clip-path: path('M0,0 C100,15 6000,15000 1300,0 Z');
+    width: 70vw;
+    }
+    .titulo {
+        font-size: 2em;
+    }
+    a {
+        font-size: 1.4em;
+    }
+  }
 
 
 .principal {
